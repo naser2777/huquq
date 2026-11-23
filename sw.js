@@ -1,7 +1,7 @@
 // غيّر رقم الإصدار مع كل تحديث للتطبيق حتى تصل التحديثات للجوال
-var CACHE = 'huquq-v8';
+var CACHE = 'huquq-old-v9';
 var FONTS = 'huquq-fonts'; // الخطوط تُحفظ أول مرة وتبقى عبر التحديثات
-var FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+var FILES = ['./', './index.html', './app.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
