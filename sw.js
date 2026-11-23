@@ -1,17 +1,19 @@
-// غيّر رقم الإصدار مع كل تحديث للتطبيق حتى تصل التحديثات للجوال
-var CACHE = 'huquq-old-v9';
+// غيّر رقم الإصدار مع كل تحديث للتطبيق
+var CACHE = 'huquq-old-v10';
 var FONTS = 'huquq-fonts'; // الخطوط تُحفظ أول مرة وتبقى عبر التحديثات
 var FILES = ['./', './index.html', './app.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
+  // cache:'reload' يتجاوز ذاكرة المتصفح حتى لا تُحفظ نسخة قديمة
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    return c.addAll(FILES.map(function (u) { return new Request(u, { cache: 'reload' }); }));
+  }));
   self.skipWaiting();
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
     return Promise.all(keys.filter(function (k) { return k !== CACHE && k !== FONTS; }).map(function (k) { return caches.delete(k); }));
-  }));
-  self.clients.claim();
+  }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
@@ -25,8 +27,15 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
-  // ملفات التطبيق فقط من الذاكرة؛ أي طلب خارجي آخر (مثل Google Drive) يذهب للشبكة مباشرة
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return; // Google Drive وغيره: من الشبكة مباشرة
+  // صفحة التطبيق: من الإنترنت أولًا (أحدث نسخة دائمًا)، والنسخة المحفوظة عند انقطاع الإنترنت
+  if (e.request.mode === 'navigate' || /\/(index\.html)?$/.test(url.pathname)) {
+    e.respondWith(fetch(e.request, { cache: 'no-store' }).then(function (res) {
+      if (res.ok) { var cp = res.clone(); caches.open(CACHE).then(function (c) { c.put('./index.html', cp); }); }
+      return res;
+    }).catch(function () { return caches.match('./index.html'); }));
+    return;
+  }
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(function (r) {
     return r || fetch(e.request);
   }));

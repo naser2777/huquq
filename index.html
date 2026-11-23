@@ -41,7 +41,7 @@ var has = false;
 try { var d = JSON.parse(localStorage.getItem('huquq-data-v1')); has = !!(d && d.entries && d.entries.length); } catch (e) {}
 if (has) document.getElementById('old').hidden = false;
 else location.replace('https://huquq-app.github.io/');
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(function (r) { r.update(); }).catch(function () {});
 </script>
 </body>
 </html>
