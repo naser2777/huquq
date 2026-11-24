@@ -1,5 +1,5 @@
 // غيّر رقم الإصدار مع كل تحديث للتطبيق
-var CACHE = 'huquq-old-v10';
+var CACHE = 'huquq-old-v11';
 var FONTS = 'huquq-fonts'; // الخطوط تُحفظ أول مرة وتبقى عبر التحديثات
 var FILES = ['./', './index.html', './app.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
@@ -12,7 +12,7 @@ self.addEventListener('install', function (e) {
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k !== CACHE && k !== FONTS; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(keys.filter(function (k) { return k.indexOf('huquq-') === 0 && k !== CACHE && k !== FONTS; }) /* لا تمسح مخازن التطبيقات الأخرى على نفس العنوان */.map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {
